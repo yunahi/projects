@@ -11,6 +11,8 @@
 #include <math.h>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <stdlib.h>
+#include <unistd.h>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -192,11 +194,13 @@ void MainWindow::dataBind() {
             ui->shapeTypeSpecial1,
             ui->shapeTypeSpecial2))
     BIND(IntBinding::bindSliderAndTextbox(
-        ui->shapeParameterSlider1, ui->shapeParameterTextbox1, settings.shapeParameter1, 1.f, 100.f))
-    BIND(IntBinding::bindSliderAndTextbox(
-        ui->shapeParameterSlider2, ui->shapeParameterTextbox2, settings.shapeParameter2, 1.f, 100.f))
+        ui->shapeParameterSlider1, ui->shapeParameterTextbox1, settings.shapeParameter1, 1.f, 20.f))
     BIND(FloatBinding::bindSliderAndTextbox(
-        ui->shapeParameterSlider3, ui->shapeParameterTextbox3, settings.shapeParameter3, 1.f, 100.f))
+        ui->shapeParameterSlider2, ui->shapeParameterTextbox2, settings.shapeParameter2, 1.f, 20.f))
+    BIND(FloatBinding::bindSliderAndTextbox(
+        ui->shapeParameterSlider3, ui->shapeParameterTextbox3, settings.shapeParameter3, 1.f, 20.f))
+    BIND(FloatBinding::bindSliderAndTextbox(
+        ui->shapeParameterSlider4, ui->shapeParameterTextbox4, settings.shapeParameter4, 0.f, 180.f))
     BIND(BoolBinding::bindCheckbox(ui->useLightingCheckbox, settings.useLighting))
     BIND(BoolBinding::bindCheckbox(ui->drawWireframeCheckbox, settings.drawWireframe))
     BIND(BoolBinding::bindCheckbox(ui->drawNormalsCheckbox, settings.drawNormals))
@@ -514,3 +518,28 @@ void MainWindow::updateCameraHeightAngle() {
 void MainWindow::setCameraAxonometric() {
     m_canvas3D->setCameraAxonometric();
 }
+
+void MainWindow::updateMainWindow(){
+    //change to while
+//    m_canvas3D->settingsChanged();
+   m_paused = false;
+   while(!m_paused){
+        m_canvas3D->updateSupportCanvas3D();
+        QCoreApplication::processEvents();
+        //in miliseconds
+        usleep(1);
+    }
+
+}
+
+void MainWindow::playPauseMainWindow(){
+    m_paused = m_paused ? false : true;
+    if (!m_paused)
+        updateMainWindow();
+}
+
+void MainWindow::restartMainWindow(){
+    m_paused = true;
+    m_canvas3D->settingsChanged();
+}
+

@@ -55,6 +55,9 @@ public:
     // This function will be called by the UI when the settings have changed.
     virtual void settingsChanged();
 
+    void updateSupportCanvas3D();
+
+
 public slots:
     // These will be called by the corresponding UI buttons on the Camtrans dock
     void resetUpVector();

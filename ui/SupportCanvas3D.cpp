@@ -280,3 +280,8 @@ void SupportCanvas3D::wheelEvent(QWheelEvent *event) {
 void SupportCanvas3D::resizeEvent(QResizeEvent *event) {
     emit aspectRatioChanged();
 }
+
+void SupportCanvas3D::updateSupportCanvas3D(){
+    m_currentScene->updateScene();
+    update();
+}

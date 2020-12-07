@@ -46,8 +46,10 @@ void Settings::loadSettingsOrDefaults() {
     // Shapes
     shapeType = s.value("shapeType", SHAPE_SPHERE).toInt();
     shapeParameter1 = s.value("shapeParameter1", 15).toInt();
-    shapeParameter2 = s.value("shapeParameter2", 15).toInt();
+    shapeParameter2 = s.value("shapeParameter2", 15).toDouble();
     shapeParameter3 = s.value("shapeParameter3", 15).toDouble();
+    shapeParameter4 = s.value("shapeParameter3", 15).toDouble();
+
     useLighting = s.value("useLighting", true).toBool();
     drawWireframe = s.value("drawWireframe", true).toBool();
     drawNormals = s.value("drawNormals", false).toBool();
@@ -108,6 +110,8 @@ void Settings::saveSettings() {
     s.setValue("shapeParameter1", shapeParameter1);
     s.setValue("shapeParameter2", shapeParameter2);
     s.setValue("shapeParameter3", shapeParameter3);
+    s.setValue("shapeParameter4", shapeParameter4);
+
     s.setValue("useLighting", useLighting);
     s.setValue("drawWireframe", drawWireframe);
     s.setValue("drawNormals", drawNormals);

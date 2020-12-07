@@ -2,11 +2,21 @@
 #include "GL/glew.h"
 #include <QGLWidget>
 #include "Camera.h"
+#include <iostream>
+
 
 #include "Settings.h"
 #include "SupportCanvas3D.h"
 #include "ResourceLoader.h"
 #include "gl/shaders/CS123Shader.h"
+
+
+#include "shapes/Shape.h"
+#include "shapes/cube.h"
+#include "shapes/cylinder.h"
+#include "shapes/cloth.h"
+
+
 using namespace CS123::GL;
 
 
@@ -17,6 +27,7 @@ SceneviewScene::SceneviewScene()
     loadWireframeShader();
     loadNormalsShader();
     loadNormalsArrowShader();
+
 }
 
 SceneviewScene::~SceneviewScene()
@@ -60,7 +71,11 @@ void SceneviewScene::render(SupportCanvas3D *context) {
     glBindTexture(GL_TEXTURE_2D, 0);
     m_phongShader->unbind();
 
+
+
+
 }
+
 
 void SceneviewScene::setSceneUniforms(SupportCanvas3D *context) {
     Camera *camera = context->getCamera();
@@ -68,6 +83,7 @@ void SceneviewScene::setSceneUniforms(SupportCanvas3D *context) {
     m_phongShader->setUniform("useArrowOffsets", false);
     m_phongShader->setUniform("p" , camera->getProjectionMatrix());
     m_phongShader->setUniform("v", camera->getViewMatrix());
+
 }
 
 void SceneviewScene::setMatrixUniforms(Shader *shader, SupportCanvas3D *context) {
@@ -82,10 +98,16 @@ void SceneviewScene::setLights()
     // Set up the lighting for your scene using m_phongShader.
     // The lighting information will most likely be stored in CS123SceneLightData structures.
     //
+
+        for (int i = 0; i < m_lightList.size();i++){
+            m_phongShader->setLight(m_lightList.at(i));
+        }
+
 }
 
 void SceneviewScene::renderGeometry() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
     // TODO: [SCENEVIEW] Fill this in...
     // You shouldn't need to write *any* OpenGL in this class!
     //
@@ -94,9 +116,68 @@ void SceneviewScene::renderGeometry() {
     // know about OpenGL and leverage your Shapes classes to get the job done.
     //
 
+
+    for (int i = 0; i < m_primitiveList.size(); i++){
+
+        m_material.clear();
+        m_material.cDiffuse.r = m_primitiveList[i].material.cDiffuse.r * m_global.kd;
+        m_material.cDiffuse.g = m_primitiveList[i].material.cDiffuse.g * m_global.kd;
+        m_material.cDiffuse.b = m_primitiveList[i].material.cDiffuse.b * m_global.kd;
+
+        m_material.cAmbient.r = m_primitiveList[i].material.cAmbient.r * m_global.ka;
+        m_material.cAmbient.g = m_primitiveList[i].material.cAmbient.g * m_global.ka;
+        m_material.cAmbient.b = m_primitiveList[i].material.cAmbient.b * m_global.ka;
+        m_phongShader->applyMaterial(m_material);
+
+        m_phongShader->setUniform("m",m_primitiveList[i].transformation);
+
+        if (m_shapes.find(m_primitiveList[i].type) != m_shapes.end())
+            m_shapes.find(m_primitiveList[i].type)->second->draw();
+    }
+
+
+
+    m_material.clear();
+    m_material.cAmbient.r = 1.f;
+    m_material.cDiffuse.r = 1.f;
+    m_material.cSpecular.r = m_material.cSpecular.g = m_material.cSpecular.b = 1;
+    m_material.shininess = 64;
+    m_phongShader->applyMaterial(m_material);
+    m_phongShader->setUniform("m", glm::mat4(1.0f));
+    m_cloth->draw();
+
 }
 
 void SceneviewScene::settingsChanged() {
     // TODO: [SCENEVIEW] Fill this in if applicable.
+
+
+
+    m_shapes.clear();
+    //adaptive level of detail
+    int arbitaryParam = std::max(4,int(200 * 1.f/m_primitiveList.size()));
+
+    for (int i = 0; i < m_primitiveList.size(); i++){
+
+        if (m_shapes.find(m_primitiveList[i].type) == m_shapes.end()){
+
+        switch (m_primitiveList[i].type) {
+                case PrimitiveType::PRIMITIVE_CUBE:
+                    m_shapes.insert({m_primitiveList[i].type,std::make_unique<Cube>(arbitaryParam)});
+                    break;
+                case PrimitiveType::PRIMITIVE_CYLINDER:
+                    m_shapes.insert({m_primitiveList[i].type,std::make_unique<Cylinder>(arbitaryParam,arbitaryParam)});
+                     break;
+                default:
+                    break;
+            }
+        }
+    }
+    m_cloth = std::make_unique<Cloth>(0);
+
+}
+
+void SceneviewScene::updateScene(){
+    m_cloth->update();
 }
 
