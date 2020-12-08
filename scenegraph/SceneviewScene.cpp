@@ -15,7 +15,7 @@
 #include "shapes/cube.h"
 #include "shapes/cylinder.h"
 #include "shapes/cloth.h"
-
+#include <glm/gtc/matrix_transform.hpp>
 
 using namespace CS123::GL;
 
@@ -67,14 +67,54 @@ void SceneviewScene::render(SupportCanvas3D *context) {
     m_phongShader->bind();
     setSceneUniforms(context);
     setLights();
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     renderGeometry();
+    if (settings.drawWireframe){
+        renderGeometryAsWireframe();
+    }
+
     glBindTexture(GL_TEXTURE_2D, 0);
     m_phongShader->unbind();
 
+    if (settings.drawNormals){
+        m_normalsArrowShader->bind();
+        setMatrixUniforms(m_normalsArrowShader.get(), context);
+        renderGeometryAsArrows();
+        m_normalsArrowShader->unbind();
+
+    }
 
 
 
 }
+
+void SceneviewScene::renderGeometryAsArrows () {
+    // Render the lines.
+
+    // Render the arrows.
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    m_material.cAmbient.r = 1.f;
+    m_material.cDiffuse.r = m_material.cDiffuse.g = m_material.cDiffuse.b = 1.f;
+    m_material.cSpecular.r = m_material.cSpecular.g = m_material.cSpecular.b = 1;
+    glm::mat4 Model = glm::scale(glm::mat4(1.0f), glm::vec3(0.7,1.1,1));
+    m_normalsArrowShader->setUniform("m", Model);
+    m_cloth->draw();
+}
+
+
+void SceneviewScene::renderGeometryAsWireframe() {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    m_material.clear();
+    m_material.cAmbient.r = 1.f;
+    m_material.cDiffuse.r = m_material.cDiffuse.g = m_material.cDiffuse.b = 1.f;
+    m_material.cSpecular.r = m_material.cSpecular.g = m_material.cSpecular.b = 1;
+    m_phongShader->applyMaterial(m_material);
+    glm::mat4 Model = glm::scale(glm::mat4(1.0f), glm::vec3(0.7,1.1,1));
+    m_phongShader->setUniform("m", Model);
+    m_cloth->draw();
+}
+
+
 
 
 void SceneviewScene::setSceneUniforms(SupportCanvas3D *context) {
@@ -106,7 +146,7 @@ void SceneviewScene::setLights()
 }
 
 void SceneviewScene::renderGeometry() {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+//    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // TODO: [SCENEVIEW] Fill this in...
     // You shouldn't need to write *any* OpenGL in this class!
@@ -118,6 +158,7 @@ void SceneviewScene::renderGeometry() {
 
 
     for (int i = 0; i < m_primitiveList.size(); i++){
+
 
         m_material.clear();
         m_material.cDiffuse.r = m_primitiveList[i].material.cDiffuse.r * m_global.kd;
@@ -143,7 +184,9 @@ void SceneviewScene::renderGeometry() {
     m_material.cSpecular.r = m_material.cSpecular.g = m_material.cSpecular.b = 1;
     m_material.shininess = 64;
     m_phongShader->applyMaterial(m_material);
-    m_phongShader->setUniform("m", glm::mat4(1.0f));
+    glm::mat4 Model = glm::scale(glm::mat4(1.0f), glm::vec3(0.7,1.1,1));
+
+    m_phongShader->setUniform("m", Model);
     m_cloth->draw();
 
 }
@@ -173,7 +216,8 @@ void SceneviewScene::settingsChanged() {
             }
         }
     }
-    m_cloth = std::make_unique<Cloth>(0);
+    m_cloth = std::make_unique<Cloth>(settings.shapeParameter1,settings.shapeParameter2,
+                                      settings.shapeParameter3,settings.shapeParameter4);
 
 }
 

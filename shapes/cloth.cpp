@@ -8,8 +8,11 @@ Cloth::Cloth()
 {
 }
 
-Cloth::Cloth(int param1) :
-    m_param1(param1)
+Cloth::Cloth(int dimension, float particleMass, float windVelocity, float windAngle):
+    m_dimension(dimension),
+    m_particleMass(particleMass),
+    m_windVelocity(windVelocity),
+    m_windAngle(windAngle)
 {
 
     buildVertexData();
@@ -28,50 +31,56 @@ void Cloth::buildVertexData(){
 }
 
 void Cloth::initialVertex(){
-    int dimension = 10;
     m_position.clear();
     m_velocity.clear();
-    for (int row = 0; row < dimension; row ++){
-        for (int col = 0; col < dimension; col++){
-            float x = (float(col)/(dimension - 1)) - 0.5;
-            float y = 0.5 - (float(row)/(dimension - 1));
+    for (int row = 0; row < m_dimension; row ++){
+        for (int col = 0; col < m_dimension; col++){
+            float x = (float(col)/(m_dimension - 1)) - 0.5;
+            float y = 0.5 - (float(row)/(m_dimension - 1));
             m_position.push_back(glm::vec3(x,y,0));
             m_velocity.push_back(glm::vec3(0,0,0));
+            m_normals.push_back(glm::vec3(0,0,-1));
         }
     }
 }
 
 void Cloth::setVertex(){
-    int dimension = 10;
     m_vertexData.clear();
     glm::vec3 frontNormal(0,0,-1);
     glm::vec3 backNormal(0,0,1);
 
-    for (int row = 0; row < dimension - 1; row ++){
-        for (int col = 0; col < dimension - 1; col++ ){
-            glm::vec3 topLeft = m_position.at(row * dimension + col);
-            glm::vec3 topRight = m_position.at(row * dimension + (col + 1));
-            glm::vec3 bottomLeft = m_position.at((row + 1) * dimension + col);
-            glm::vec3 bottomRight = m_position.at((row + 1) * dimension + (col + 1));
-            setVertexHelper(bottomLeft,topRight,topLeft,frontNormal);
-            setVertexHelper(bottomRight,topRight,bottomLeft,frontNormal);
-            setVertexHelper(bottomLeft,topLeft,topRight,backNormal);
-            setVertexHelper(bottomRight,bottomLeft,topRight,backNormal);
+    for (int row = 0; row < m_dimension - 1; row ++){
+        for (int col = 0; col < m_dimension - 1; col++ ){
+            glm::vec3 topLeft = m_position.at(row * m_dimension + col);
+            glm::vec3 topRight = m_position.at(row * m_dimension + (col + 1));
+            glm::vec3 bottomLeft = m_position.at((row + 1) * m_dimension + col);
+            glm::vec3 bottomRight = m_position.at((row + 1) * m_dimension + (col + 1));
+
+            glm::vec3 topLeftNormal = m_normals.at(row * m_dimension + col);
+            glm::vec3 topRightNormal = m_normals.at(row * m_dimension + (col + 1));
+            glm::vec3 bottomLeftNormal = m_normals.at((row + 1) * m_dimension + col);
+            glm::vec3 bottomRightNormal = m_normals.at((row + 1) * m_dimension + (col + 1));
+
+            setVertexHelper(bottomLeft,topRight,topLeft,bottomLeftNormal,topRightNormal,topLeftNormal);
+            setVertexHelper(bottomRight,topRight,bottomLeft,bottomRightNormal,topRightNormal,bottomLeftNormal);
+            setVertexHelper(bottomLeft,topLeft,topRight,bottomLeftNormal,topLeftNormal,topRightNormal);
+            setVertexHelper(bottomRight,bottomLeft,topRight,bottomRightNormal,bottomLeftNormal,topRightNormal);
         }
     }
 }
 
-void Cloth::setVertexHelper(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 normal){
+void Cloth::setVertexHelper(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3,
+                            glm::vec3 n1, glm::vec3 n2, glm::vec3 n3){
 
 
     insertVec3(m_vertexData,p1);
-    insertVec3(m_vertexData,normal);
+    insertVec3(m_vertexData,-n1);
 
     insertVec3(m_vertexData,p2);
-    insertVec3(m_vertexData,normal);
+    insertVec3(m_vertexData,-n2);
 
     insertVec3(m_vertexData,p3);
-    insertVec3(m_vertexData,normal);
+    insertVec3(m_vertexData,-n3);
 
 }
 
@@ -81,18 +90,20 @@ void Cloth::update(){
     buildVAO();
 }
 
-std::vector<std::vector<glm::vec3>> Cloth::updateVertexHelper(int row,std::vector<glm::vec3> position,std::vector<glm::vec3> velocity){
+std::vector<std::vector<glm::vec3>> Cloth::updateVertexHelper(int row){
     std::vector<std::vector<glm::vec3>> result;
     std::vector<glm::vec3> nextVelocity;
     std::vector<glm::vec3> nextPosition;
 
-    int dimension = 10;
-    int particleMass = 3;
+
     float step = 0.005;
-    for (int col = 0; col < dimension; col++){
-        glm::vec3 acceleration = netForce(row,col,position,velocity)/(particleMass*0.1f);
-        nextVelocity.push_back(velocity[row*dimension+col] + acceleration * step);
-        nextPosition.push_back(position[row*dimension+col] + nextVelocity[col] * step);
+    for (int col = 0; col < m_dimension; col++){
+        glm::vec3 acceleration = netForce(row,col)/(m_particleMass*0.1f);
+        nextVelocity.push_back(m_velocity[row*m_dimension+col] + acceleration * step);
+        glm::vec3 nextPos = glm::vec3(m_position[row*m_dimension+col] + nextVelocity[col] * step);
+        if (nextPos.z < 0.f)
+            nextPos.z = 0.f;
+        nextPosition.push_back(nextPos);
     }
     result.push_back(nextPosition);
     result.push_back(nextVelocity);
@@ -100,15 +111,62 @@ std::vector<std::vector<glm::vec3>> Cloth::updateVertexHelper(int row,std::vecto
     return result;
 }
 
+void Cloth::calculateNormals(){
+    //fix later
+    m_normals.clear();
+    std::vector<QFuture<std::vector<glm::vec3>>> threads;
+
+    for (int row = 0; row < m_dimension; row++){
+        threads.push_back(QtConcurrent::run(this,&Cloth::calculateNormalsHelper,row));
+    }
+    for (int i = 0; i < threads.size();i++){
+        std::vector<glm::vec3>ret = threads[i].result();
+        m_normals.insert(m_normals.end(), ret.begin(), ret.end());
+
+    }
+}
+
+std::vector<glm::vec3> Cloth::calculateNormalsHelper(int row){
+    std::vector<int> dx {1,1,0,-1,-1,0};
+    std::vector<int> dy {0,1,1,0,-1,-1};
+    std::vector<glm::vec3> result;
+    for (int col = 0; col < m_dimension; col++){
+
+        glm::vec3 p = m_position[row * m_dimension + col];
+        std::vector<glm::vec3> normals;
+        for (int t = 0; t < 6; t++){
+            int row1 = row + dy[t];
+            int col1 = col + dx[t];
+
+            int row2 = row + dy[(t+1)%6];
+            int col2 = col + dx[(t+1)%6];
+            if (validIndex(row1,col1)&&validIndex(row2,col2)){
+                glm::vec3 e1 = m_position[row1 * m_dimension + col1] - p;
+                glm::vec3 e2 = m_position[row2 * m_dimension + col2] - p;
+                normals.push_back(glm::normalize(glm::cross(e1,e2)));
+            }
+        }
+        glm::vec3 normalsSum;
+        for (int t = 0; t < normals.size(); t++){
+            normalsSum += normals[t];
+        }
+        result.push_back(glm::normalize(normalsSum));
+
+    }
+    return result;
+}
+
+
+
 void Cloth::updateVertex(){
-    int dimension = 10;
-    int particleMass = 3;
+
     float step = 0.005;
 
+    calculateNormals();
     std::vector<QFuture<std::vector<std::vector<glm::vec3>>>> threads;
 
-    for (int row = 0; row < dimension; row++){
-        threads.push_back(QtConcurrent::run(updateVertexHelper,row,m_position,m_velocity));
+    for (int row = 0; row < m_dimension; row++){
+        threads.push_back(QtConcurrent::run(this,&Cloth::updateVertexHelper,row));
     }
 
     for (int i = 0; i < threads.size();i++){
@@ -119,8 +177,9 @@ void Cloth::updateVertex(){
     }
     m_nextVelocity[0] = glm::vec3(0,0,0);
     m_nextPosition[0] = glm::vec3(-0.5,0.5,0);
-    m_nextVelocity[dimension - 1] = glm::vec3(0,0,0);
-    m_nextPosition[dimension - 1] = glm::vec3(0.5,0.5,0);
+    m_nextVelocity[m_dimension - 1] = glm::vec3(0,0,0);
+    m_nextPosition[m_dimension - 1] = glm::vec3(0.5,0.5,0);
+
     //transfer and clear
     m_position = m_nextPosition;
     m_velocity = m_nextVelocity;
@@ -130,33 +189,32 @@ void Cloth::updateVertex(){
 
 }
 
-glm::vec3 Cloth::netForce(int row, int col,
-                          std::vector<glm::vec3> position,std::vector<glm::vec3> velocity){
-    int dimension = 10;
+glm::vec3 Cloth::netForce(int row, int col){
     glm::vec3 netForce(0,0,0);
 
 
-    float rs =  (1.f/(dimension - 1));
-    float rsh = (sqrt(2)/(dimension - 1));
-    float rb= (2.f/(dimension - 1));
+    float rs =  (1.f/(m_dimension - 1));
+    float rsh = (sqrt(2)/(m_dimension - 1));
+    float rb= (2.f/(m_dimension - 1));
 
-    netForce += structuralForce(row,col,30,rs,position);
-    netForce += shearForce(row,col, 30,rsh,position);
-    netForce += bendForce(row,col, 30,rb,position);
+    netForce += structuralForce(row,col,30,rs);
+    netForce += shearForce(row,col, 30,rsh);
+    netForce += bendForce(row,col, 30,rb);
+
+
     netForce += gravityForce();
     netForce += windForce();
-    netForce += dampingForce(velocity[row * dimension + col]);
+    netForce += dampingForce(m_velocity[row * m_dimension + col]);
 
     return netForce;
 }
 
 bool Cloth::validIndex(int row, int col){
-    int dimension = 10;
-    if (row >=dimension)
+    if (row >=m_dimension)
         return false;
     if (row < 0)
         return false;
-    if (col >= dimension)
+    if (col >= m_dimension)
         return false;
     if (col < 0)
         return false;
@@ -170,81 +228,73 @@ glm::vec3 Cloth::springForce(glm::vec3 p, glm::vec3 q, float stiffness, float re
 }
 
 glm::vec3 Cloth::dampingForce(glm::vec3 velocity){
-    float damping = 1;
+    float damping = 0.5;
     return damping * 0.1f * velocity;
 }
 
 glm::vec3 Cloth::gravityForce(){
-    float particleMass = 3;
     float g = -9.8;
-    return glm::vec3 (0,(particleMass*0.1) * g,0);
+    return glm::vec3 (0,(m_particleMass*0.1) * g,0);
 }
 
 glm::vec3 Cloth::windForce(){
-    float windAngle = 0;
-    float windVelocity = 5;
-    float radian = windAngle*M_PI/180.f;
-    float unknownVal = 0.12 * 0.5 * 1.2 * pow(windVelocity,2);
+
+    float radian = m_windAngle*M_PI/180.f;
+    float unknownVal = 0.12 * 0.5 * 1.2 * pow(m_windVelocity,2);
 
     return glm::vec3(unknownVal * sin(radian), 0, unknownVal * cos(radian));
 }
 
 glm::vec3 Cloth::structuralForce(int row, int col,
-                                 float stiffness, float restLength,
-                                 std::vector<glm::vec3> position){
-    int dimension = 10;
+                                 float stiffness, float restLength){
     glm::vec3 force(0,0,0);
     if (validIndex(row + 1, col))
-        force += springForce(position[row*dimension+col],position[(row + 1) * dimension + (col)],
+        force += springForce(m_position[row*m_dimension+col],m_position[(row + 1) * m_dimension + (col)],
                                 stiffness,restLength);
     if (validIndex(row - 1, col))
-        force += springForce(position[row*dimension+col],position[(row - 1) * dimension + (col)],
+        force += springForce(m_position[row*m_dimension+col],m_position[(row - 1) * m_dimension + (col)],
                                 stiffness,restLength);
     if (validIndex(row, col + 1))
-        force += springForce(position[row*dimension+col],position[(row) * dimension + (col + 1)],
+        force += springForce(m_position[row*m_dimension+col],m_position[(row) * m_dimension + (col + 1)],
                                 stiffness,restLength);
     if (validIndex(row, col - 1))
-        force += springForce(position[row*dimension+col],position[(row) * dimension + (col - 1)],
+        force += springForce(m_position[row*m_dimension+col],m_position[(row) * m_dimension + (col - 1)],
                                 stiffness,restLength);
     return force;
 }
 
-glm::vec3 Cloth::shearForce(int row, int col, float stiffness, float restLength,
-                            std::vector<glm::vec3> position){
-    int dimension = 10;
+glm::vec3 Cloth::shearForce(int row, int col, float stiffness, float restLength){
     glm::vec3 force(0,0,0);
 
     if (validIndex(row + 1, col + 1))
-        force += springForce(position[row*dimension+col],position[(row + 1)*dimension+(col + 1)],
+        force += springForce(m_position[row*m_dimension+col],m_position[(row + 1)*m_dimension+(col + 1)],
                                 stiffness,restLength);
     if (validIndex(row + 1, col - 1))
-        force += springForce(position[row*dimension+col],position[(row + 1)*dimension+(col - 1)],
+        force += springForce(m_position[row*m_dimension+col],m_position[(row + 1)*m_dimension+(col - 1)],
                                 stiffness,restLength);
     if (validIndex(row - 1, col + 1))
-        force += springForce(position[row*dimension+col],position[(row - 1)*dimension+(col + 1)],
+        force += springForce(m_position[row*m_dimension+col],m_position[(row - 1)*m_dimension+(col + 1)],
                                 stiffness,restLength);
     if (validIndex(row - 1, col - 1))
-        force += springForce(position[row*dimension+col],position[(row - 1)*dimension+(col - 1)],
+        force += springForce(m_position[row*m_dimension+col],m_position[(row - 1)*m_dimension+(col - 1)],
                                 stiffness,restLength);
     return force;
 }
 
-glm::vec3 Cloth::bendForce(int row, int col, float stiffness, float restLength,
-                           std::vector<glm::vec3> position){
-    int dimension = 10;
+glm::vec3 Cloth::bendForce(int row, int col, float stiffness, float restLength){
     glm::vec3 force(0,0,0);
 
     if (validIndex(row + 2, col))
-        force += springForce(position[row*dimension+col],position[(row + 2)*dimension+(col)],
+        force += springForce(m_position[row*m_dimension+col],m_position[(row + 2)*m_dimension+(col)],
                                 stiffness,restLength);
     if (validIndex(row - 2, col))
-        force += springForce(position[row*dimension+col],position[(row - 2)*dimension+(col)],
+        force += springForce(m_position[row*m_dimension+col],m_position[(row - 2)*m_dimension+(col)],
                                 stiffness,restLength);
     if (validIndex(row, col + 2))
-        force += springForce(position[row*dimension+col],position[(row)*dimension+(col + 2)],
+        force += springForce(m_position[row*m_dimension+col],m_position[(row)*m_dimension+(col + 2)],
                                 stiffness,restLength);
     if (validIndex(row, col - 2))
-        force += springForce(position[row*dimension+col],position[(row)*dimension+(col - 2)],
+        force += springForce(m_position[row*m_dimension+col],m_position[(row)*m_dimension+(col - 2)],
                                 stiffness,restLength);
     return force;
 

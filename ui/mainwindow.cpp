@@ -194,7 +194,7 @@ void MainWindow::dataBind() {
             ui->shapeTypeSpecial1,
             ui->shapeTypeSpecial2))
     BIND(IntBinding::bindSliderAndTextbox(
-        ui->shapeParameterSlider1, ui->shapeParameterTextbox1, settings.shapeParameter1, 1.f, 20.f))
+        ui->shapeParameterSlider1, ui->shapeParameterTextbox1, settings.shapeParameter1, 1.f, 30.f))
     BIND(FloatBinding::bindSliderAndTextbox(
         ui->shapeParameterSlider2, ui->shapeParameterTextbox2, settings.shapeParameter2, 1.f, 20.f))
     BIND(FloatBinding::bindSliderAndTextbox(

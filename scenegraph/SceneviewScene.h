@@ -70,6 +70,8 @@ private:
     std::map<PrimitiveType,std::unique_ptr<Shape>> m_shapes;
     std::unique_ptr<Shape> m_cloth;
 
+    void renderGeometryAsWireframe();
+    void renderGeometryAsArrows ();
 
 };
 
