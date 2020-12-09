@@ -16,7 +16,8 @@ Cloth::Cloth(int dimension, float particleMass, float windVelocity, float windAn
     m_windAngle(windAngle),
     m_structuralStiffness(26),
     m_shearStiffness(31),
-    m_bendStiffness(24)
+    
+    
 {
 
     buildVertexData();

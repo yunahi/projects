@@ -4,7 +4,8 @@
 #include "OpenGLScene.h"
 #include "shapes/Shape.h"
 #include <map>
-
+#include <QCoreApplication>
+#include "gl/textures/Texture2D.h"
 
 #include <memory>
 
@@ -72,6 +73,10 @@ private:
 
     void renderGeometryAsWireframe();
     void renderGeometryAsArrows ();
+
+    void loadTexture();
+    std::map<std::string,QImage> m_texture;
+
 
 };
 

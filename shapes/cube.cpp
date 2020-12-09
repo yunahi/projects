@@ -51,8 +51,32 @@ void Cube::buildVertexData(){
                 for (int i = 0; i < 6; i++){
                     coord[rowOrd[face]] += (float)rowStep[i]/m_param1;
                     coord[colOrd[face]] += (float)colStep[i]/m_param1;
-                    m_vertexData.insert(m_vertexData.end(),{coord[0],coord[1],coord[2],normal[0],normal[1],normal[2]});
-                }
+
+                    //uvs
+
+
+                    std::vector<float> uv = {0.0,0.0};
+                    if (face == 0){
+                        uv[0] = coord[2] + 0.5;
+                        uv[1] = -coord[1] + 0.5;
+                    } else if (face == 1){
+                        uv[0] = -coord[2] + 0.5;
+                        uv[1] = -coord[1] + 0.5;
+                    }else if (face == 2){
+                        uv[0] = coord[0] + 0.5;
+                        uv[1] = -coord[2] + 0.5;
+                    }else if (face == 3){
+                        uv[0] = coord[0] + 0.5;
+                        uv[1] = coord[2] + 0.5;
+                    }else if (face == 4){
+                        uv[0] = -coord[0] + 0.5;
+                        uv[1] = -coord[1] + 0.5;
+                    }else if (face == 5){
+                        uv[0] = coord[0] + 0.5;
+                        uv[1] = -coord[1] + 0.5;
+                    }
+                    m_vertexData.insert(m_vertexData.end(),{coord[0],coord[1],coord[2],normal[0],normal[1],normal[2],
+                                        uv[0],uv[1]});                }
             }
         }
     }

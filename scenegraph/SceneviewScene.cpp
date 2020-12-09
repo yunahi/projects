@@ -16,7 +16,9 @@
 #include "shapes/cylinder.h"
 #include "shapes/cloth.h"
 #include <glm/gtc/matrix_transform.hpp>
-
+#include "gl/textures/Texture2D.h"
+#include "gl/textures/TextureParameters.h"
+#include "gl/textures/TextureParametersBuilder.h"
 using namespace CS123::GL;
 
 
@@ -172,6 +174,29 @@ void SceneviewScene::renderGeometry() {
 
         m_phongShader->setUniform("m",m_primitiveList[i].transformation);
 
+        if (m_primitiveList[i].material.textureMap.isUsed){
+            std::cout<<"texture"<<std::endl;
+            std::string filename = m_primitiveList[i].material.textureMap.filename;
+            QImage image = m_texture.find(std::string(filename))->second;
+            QImage fImage = QGLWidget::convertToGLFormat(image);
+
+            //the width and height is correct, thus image must be loading correctly
+            std::cout<<fImage.width()<<" "<<fImage.height()<<std::endl;
+
+            Texture2D texture(fImage.bits(), fImage.width(), fImage.height());
+            TextureParametersBuilder builder;
+            builder.setFilter(TextureParameters::FILTER_METHOD::LINEAR);
+            builder.setWrap(TextureParameters::WRAP_METHOD::REPEAT);
+            TextureParameters parameters = builder.build();
+            parameters.applyTo(texture);
+
+            //is this the right place fo the next two lines of code?
+            m_phongShader->setTexture("tex",texture);
+            m_phongShader->setUniform("repeatUV",glm::vec2(m_primitiveList[i].material.textureMap.repeatU,
+                                                           m_primitiveList[i].material.textureMap.repeatV));
+
+        }
+
         if (m_shapes.find(m_primitiveList[i].type) != m_shapes.end())
             m_shapes.find(m_primitiveList[i].type)->second->draw();
     }
@@ -195,7 +220,7 @@ void SceneviewScene::settingsChanged() {
     // TODO: [SCENEVIEW] Fill this in if applicable.
 
 
-
+    loadTexture();
     m_shapes.clear();
     //adaptive level of detail
     int arbitaryParam = std::max(4,int(200 * 1.f/m_primitiveList.size()));
@@ -217,11 +242,38 @@ void SceneviewScene::settingsChanged() {
         }
     }
     m_cloth = std::make_unique<Cloth>(settings.shapeParameter1,settings.shapeParameter2,
-                                      settings.shapeParameter3,settings.shapeParameter4);
+                                      settings.shapeParameter3,settings.shapeParameter4,
+                                      settings.blurRadius, settings.scaleX * 10, settings.scaleY * 10);
 
 }
 
 void SceneviewScene::updateScene(){
     m_cloth->update();
+}
+
+void SceneviewScene::loadTexture(){
+    for (int i = 0; i < m_primitiveList.size(); i++){
+
+        CS123SceneFileMap texturemap = m_primitiveList[i].material.textureMap;
+        if (m_texture.find(texturemap.filename) == m_texture.end()){
+            if (texturemap.isUsed ){
+                std::string filename = texturemap.filename;
+
+                //change filepath here
+                if (true){
+                    std::string replacement = "/Users/yuna.hiraide/Desktop/";
+                    filename.replace(0,14,replacement);
+                }
+                QString filenameQ = QString::fromStdString(filename);
+                QImage image = QImage(filenameQ);
+
+
+                if (!image.isNull()){
+                    m_texture.insert(std::make_pair(std::string(m_primitiveList[i].material.textureMap.filename),image));
+                }
+            }
+        }
+
+    }
 }
 

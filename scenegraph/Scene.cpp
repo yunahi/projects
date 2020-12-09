@@ -67,7 +67,6 @@ void Scene::addPrimitiveHelper(CS123SceneNode *node, glm::mat4 parentMatrix){
 
         switch (node->transformations[t_i]->type) {
         case TRANSFORMATION_TRANSLATE:
-            std::cout<<transformation->translate.y<<std::endl;
             parentMatrix *= glm::translate(transformation->translate);
             break;
         case TRANSFORMATION_SCALE:
