@@ -77,6 +77,11 @@ private:
     void loadTexture();
     std::map<std::string,QImage> m_texture;
 
+    void loadTextures();
+    bool m_loadTextures;
+    std::map<std::string, CS123::GL::Texture2D> m_textures;
+
+
 
 };
 

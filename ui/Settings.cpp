@@ -50,6 +50,7 @@ void Settings::loadSettingsOrDefaults() {
     shapeParameter3 = s.value("shapeParameter3", 15).toDouble();
     shapeParameter4 = s.value("shapeParameter3", 15).toDouble();
 
+
     useLighting = s.value("useLighting", true).toBool();
     drawWireframe = s.value("drawWireframe", true).toBool();
     drawNormals = s.value("drawNormals", false).toBool();

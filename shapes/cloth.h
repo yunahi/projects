@@ -3,6 +3,8 @@
 
 #include "Shape.h"
 
+
+
 class Cloth : public Shape
 {
 public:
@@ -47,7 +49,7 @@ protected:
      glm::vec3 springForce(glm::vec3 p, glm::vec3 q, float stiffness, float restLength);
      glm::vec3 dampingForce(glm::vec3 velocity);
      glm::vec3 gravityForce();
-     glm::vec3 windForce();
+     glm::vec3 windForce(int row, int col);
      glm::vec3 structuralForce(int row, int col,
                               float stiffness, float restLength);
      glm::vec3 shearForce(int row, int col,

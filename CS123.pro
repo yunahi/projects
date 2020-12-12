@@ -38,6 +38,8 @@ SOURCES += \
     scenegraph/RayScene.cpp \
     shapes/ExampleShape.cpp \
     shapes/cloth.cpp \
+    shapes/cloth2.cpp \
+    shapes/clothback.cpp \
     shapes/cube.cpp \
     shapes/cylinder.cpp \
     shapes/spunshape.cpp \
@@ -88,6 +90,8 @@ HEADERS += \
     shapes/ExampleShape.h \
     shapes/Shape.h \
     shapes/cloth.h \
+    shapes/cloth2.h \
+    shapes/clothback.h \
     shapes/cube.h \
     shapes/cylinder.h \
     shapes/spunshape.h \

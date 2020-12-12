@@ -11,12 +11,14 @@ Cloth::Cloth()
 Cloth::Cloth(int dimension, float particleMass, float windVelocity, float windAngle,
              float stif1, float stif2, float stif3):
     m_dimension(dimension),
-    m_particleMass(3000.f/pow(dimension,2)),
+    m_particleMass(800.f/pow(dimension,2)),
     m_windVelocity(windVelocity),
     m_windAngle(windAngle),
     m_structuralStiffness(26),
     m_shearStiffness(31),
     m_bendStiffness(24)
+
+
 {
 
     buildVertexData();
@@ -77,11 +79,12 @@ void Cloth::setVertex(){
             setVertexHelper(bottomRight,topRight,bottomLeft,
                             bottomRightNormal,topRightNormal,bottomLeftNormal,
                             bottomRightUv,topRightUv,bottomLeftUv);
+
             setVertexHelper(bottomLeft,topLeft,topRight,
-                            bottomLeftNormal,topLeftNormal,topRightNormal,
+                            -bottomLeftNormal,-topLeftNormal,-topRightNormal,
                             bottomLeftUv,topLeftUv,topRightUv);
             setVertexHelper(bottomRight,bottomLeft,topRight,
-                            bottomRightNormal,bottomLeftNormal,topRightNormal,
+                            -bottomRightNormal,-bottomLeftNormal,-topRightNormal,
                             bottomRightUv,bottomLeftUv,topRightUv);
         }
     }
@@ -188,7 +191,6 @@ std::vector<glm::vec3> Cloth::calculateNormalsHelper(int row){
 }
 
 
-
 void Cloth::updateVertex(){
 
 
@@ -219,6 +221,8 @@ void Cloth::updateVertex(){
 
 }
 
+
+
 glm::vec3 Cloth::netForce(int row, int col){
     glm::vec3 netForce(0,0,0);
 
@@ -233,7 +237,7 @@ glm::vec3 Cloth::netForce(int row, int col){
 
 
     netForce += gravityForce();
-    netForce += windForce();
+    netForce += windForce(row, col);
     netForce += dampingForce(m_velocity[row * m_dimension + col]);
 
     return netForce;
@@ -267,12 +271,16 @@ glm::vec3 Cloth::gravityForce(){
     return glm::vec3 (0,(m_particleMass*0.1f) * g,0);
 }
 
-glm::vec3 Cloth::windForce(){
+glm::vec3 Cloth::windForce(int row, int col){
 
     float radian = m_windAngle*M_PI/180.f;
-    float unknownVal = 0.12 * 0.5 * 1.2 * pow(m_windVelocity,2);
+    float unknownVal = 0.1 * m_windVelocity;
+    glm::vec3 direction = glm::vec3(sin(radian), 0, cos(radian));
+    glm::vec3 force = m_normals.at(row * m_dimension + col) *glm::dot(m_normals.at(row * m_dimension + col),direction) * unknownVal;
 
-    return glm::vec3(unknownVal * sin(radian), 0, unknownVal * cos(radian));
+//    return glm::vec3(unknownVal * sin(radian), 0, unknownVal * cos(radian));
+    return force;
+
 }
 
 glm::vec3 Cloth::structuralForce(int row, int col,

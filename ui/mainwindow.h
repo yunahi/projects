@@ -121,6 +121,8 @@ public slots:
     void updateMainWindow();
     void playPauseMainWindow();
     void restartMainWindow();
+    void batmanMainWindow();
+
 
 };
 

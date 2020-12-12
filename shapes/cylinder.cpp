@@ -43,8 +43,10 @@ void Cylinder::buildVertexData(){
         m_vertexData.push_back(topCap.at(i+3));
         m_vertexData.push_back(topCap.at(i+4));
         m_vertexData.push_back(topCap.at(i+5));
-        m_vertexData.push_back(topCap.at(i) + 0.5);
-        m_vertexData.push_back(topCap.at(i+2) + 0.5);
+        m_vertexData.push_back(0);
+        m_vertexData.push_back(0);
+//        m_vertexData.push_back(topCap.at(i) + 0.5);
+//        m_vertexData.push_back(topCap.at(i+2) + 0.5);
     }
 
     for (int i = 0; i < bottomCap.size() - 5; i+=6){
@@ -54,8 +56,10 @@ void Cylinder::buildVertexData(){
         m_vertexData.push_back(bottomCap.at(i+3));
         m_vertexData.push_back(bottomCap.at(i+4));
         m_vertexData.push_back(bottomCap.at(i+5));
-        m_vertexData.push_back(bottomCap.at(i) + 0.5);
-        m_vertexData.push_back(-bottomCap.at(i+2) + 0.5);
+        m_vertexData.push_back(0);
+        m_vertexData.push_back(0);
+//        m_vertexData.push_back(bottomCap.at(i) + 0.5);
+//        m_vertexData.push_back(-bottomCap.at(i+2) + 0.5);
     }
 
     for (int i = 0; i < wrap.size() - 5; i+=6){

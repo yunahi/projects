@@ -13,6 +13,8 @@
 #include <QMessageBox>
 #include <stdlib.h>
 #include <unistd.h>
+#include <iostream>
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -93,12 +95,12 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(rb, SIGNAL(clicked()), this, SLOT(activateCanvas2D()));
 
     a.clear();
-    a += ui->shapeTypeCone;
-    a += ui->shapeTypeCube;
-    a += ui->shapeTypeCylinder;
-    a += ui->shapeTypeTorus;
-    a += ui->shapeTypeSpecial1;
-    a += ui->shapeTypeSpecial2;
+//    a += ui->shapeTypeCone;
+//    a += ui->shapeTypeCube;
+//    a += ui->shapeTypeCylinder;
+//    a += ui->shapeTypeTorus;
+//    a += ui->shapeTypeSpecial1;
+//    a += ui->shapeTypeSpecial2;
     foreach (QRadioButton *rb, a)
         connect(rb, SIGNAL(clicked()), this, SLOT(activateCanvas3D()));
 
@@ -107,6 +109,8 @@ MainWindow::MainWindow(QWidget *parent) :
     show();
     ui->tabWidget->setCurrentWidget(widget);
     show();
+
+
 
 }
 
@@ -194,13 +198,13 @@ void MainWindow::dataBind() {
             ui->shapeTypeSpecial1,
             ui->shapeTypeSpecial2))
     BIND(IntBinding::bindSliderAndTextbox(
-        ui->shapeParameterSlider1, ui->shapeParameterTextbox1, settings.shapeParameter1, 1.f, 30.f))
+        ui->shapeParameterSlider1, ui->shapeParameterTextbox1, settings.shapeParameter1, 1.f, 60.f))
     BIND(FloatBinding::bindSliderAndTextbox(
-        ui->shapeParameterSlider2, ui->shapeParameterTextbox2, settings.shapeParameter2, 1.f, 20.f))
+        ui->shapeParameterSlider2, ui->shapeParameterTextbox2, settings.shapeParameter2, 0.1f, 1.f))
     BIND(FloatBinding::bindSliderAndTextbox(
-        ui->shapeParameterSlider3, ui->shapeParameterTextbox3, settings.shapeParameter3, 1.f, 20.f))
+        ui->shapeParameterSlider3, ui->shapeParameterTextbox3, settings.shapeParameter3, 1.f, 5.f))
     BIND(FloatBinding::bindSliderAndTextbox(
-        ui->shapeParameterSlider4, ui->shapeParameterTextbox4, settings.shapeParameter4, 0.f, 180.f))
+        ui->shapeParameterSlider4, ui->shapeParameterTextbox4, settings.shapeParameter4, 0.f, 360.f))
     BIND(BoolBinding::bindCheckbox(ui->useLightingCheckbox, settings.useLighting))
     BIND(BoolBinding::bindCheckbox(ui->drawWireframeCheckbox, settings.drawWireframe))
     BIND(BoolBinding::bindCheckbox(ui->drawNormalsCheckbox, settings.drawNormals))
@@ -540,6 +544,82 @@ void MainWindow::playPauseMainWindow(){
 
 void MainWindow::restartMainWindow(){
     m_paused = true;
+    settings.superman = true;
+
+    //
+    QString file = QString::fromStdString("/Users/yuna.hiraide/Desktop/data/scenes/general/lego.xml");
+    if (!file.isNull()) {
+        if (file.endsWith(".xml")) {
+            CS123XmlSceneParser parser(file.toLatin1().data());
+            if (parser.parse()) {
+                m_canvas3D->loadSceneviewSceneFromParser(parser);
+                ui->showSceneviewInstead->setChecked(true);
+
+                // Set the camera for the new scene
+                CS123SceneCameraData camera;
+                if (parser.getCameraData(camera)) {
+                    camera.pos[3] = 1;
+                    camera.look[3] = 0;
+                    camera.up[3] = 0;
+
+                    CamtransCamera *cam = m_canvas3D->getCamtransCamera();
+                    cam->orientLook(camera.pos, camera.look, camera.up);
+                    cam->setHeightAngle(camera.heightAngle);
+                }
+
+                if (settings.useOrbitCamera) {
+                    ui->cameraOrbitCheckbox->setChecked(false);
+                }
+
+                activateCanvas3D();
+            } else {
+                QMessageBox::critical(this, "Error", "Could not load scene \"" + file + "\"");
+            }
+        }
+    }
+
+
+
+    m_canvas3D->settingsChanged();
+}
+
+void MainWindow::batmanMainWindow(){
+    m_paused = true;
+    settings.superman = false;
+    //
+    QString file = QString::fromStdString("/Users/yuna.hiraide/Desktop/data/scenes/general/batman.xml");
+    if (!file.isNull()) {
+        if (file.endsWith(".xml")) {
+            CS123XmlSceneParser parser(file.toLatin1().data());
+            if (parser.parse()) {
+                m_canvas3D->loadSceneviewSceneFromParser(parser);
+                ui->showSceneviewInstead->setChecked(true);
+
+                // Set the camera for the new scene
+                CS123SceneCameraData camera;
+                if (parser.getCameraData(camera)) {
+                    camera.pos[3] = 1;
+                    camera.look[3] = 0;
+                    camera.up[3] = 0;
+
+                    CamtransCamera *cam = m_canvas3D->getCamtransCamera();
+                    cam->orientLook(camera.pos, camera.look, camera.up);
+                    cam->setHeightAngle(camera.heightAngle);
+                }
+
+                if (settings.useOrbitCamera) {
+                    ui->cameraOrbitCheckbox->setChecked(false);
+                }
+
+                activateCanvas3D();
+            } else {
+                QMessageBox::critical(this, "Error", "Could not load scene \"" + file + "\"");
+            }
+        }
+    }
+
+
+
     m_canvas3D->settingsChanged();
 }
 
