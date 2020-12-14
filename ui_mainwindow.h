@@ -232,6 +232,12 @@ public:
     QMenu *menuFile;
     QMenu *menuToolbars;
 
+    QPushButton *superman;
+    QPushButton *batman;
+    QPushButton *play;
+
+
+
     void setupUi(QMainWindow *MainWindow)
     {
         if (MainWindow->objectName().isEmpty())
@@ -536,6 +542,8 @@ public:
         shapeParameterLabel3 = new QLabel(shapeParameters);
         shapeParameterLabel3->setObjectName(QString::fromUtf8("shapeParameterLabel3"));
 
+
+
         gridLayout_4->addWidget(shapeParameterLabel3, 4, 0, 1, 1);
 
         shapeParameterLabel4 = new QLabel(shapeParameters);
@@ -594,13 +602,13 @@ public:
 
         gridLayout_4->addWidget(shapeParameterTextbox3, 4, 2, 1, 1);
 
-
-        shapeParameterTextbox4= new QLineEdit(shapeParameters);
-        shapeParameterTextbox4->setObjectName(QString::fromUtf8("shapeParameterTextbox4"));
+        shapeParameterTextbox4 = new QLineEdit(shapeParameters);
+        shapeParameterTextbox4->setObjectName(QString::fromUtf8("shapeParameterTextbox3"));
         shapeParameterTextbox4->setMinimumSize(QSize(40, 0));
         shapeParameterTextbox4->setMaximumSize(QSize(40, 16777215));
 
         gridLayout_4->addWidget(shapeParameterTextbox4, 6, 2, 1, 1);
+
 
         verticalLayout_7->addWidget(shapeParameters);
 
@@ -623,6 +631,24 @@ public:
         shapesDockEmptySpace->setObjectName(QString::fromUtf8("shapesDockEmptySpace"));
         sizePolicy2.setHeightForWidth(shapesDockEmptySpace->sizePolicy().hasHeightForWidth());
         shapesDockEmptySpace->setSizePolicy(sizePolicy2);
+
+
+        superman = new QPushButton(shapesDockContents);
+        superman->setObjectName(QString::fromUtf8("superman"));
+
+        verticalLayout_7->addWidget(superman);
+
+        batman = new QPushButton(shapesDockContents);
+        batman->setObjectName(QString::fromUtf8("batman"));
+
+        verticalLayout_7->addWidget(batman);
+
+
+        play = new QPushButton(shapesDockContents);
+        play->setObjectName(QString::fromUtf8("play"));
+
+        verticalLayout_7->addWidget(play);
+
 
         verticalLayout_7->addWidget(shapesDockEmptySpace);
 
@@ -1398,6 +1424,10 @@ public:
         QObject::connect(cameraOrbitCheckbox, SIGNAL(toggled(bool)), cameraResetAxis, SLOT(setDisabled(bool)));
         QObject::connect(actionUseOrbitingCamera, SIGNAL(toggled(bool)), cameraOrbitCheckbox, SLOT(setChecked(bool)));
         QObject::connect(cameraOrbitCheckbox, SIGNAL(toggled(bool)), actionUseOrbitingCamera, SLOT(setChecked(bool)));
+        QObject::connect(superman, SIGNAL(clicked(bool)), MainWindow, SLOT(restartMainWindow()));
+        QObject::connect(batman, SIGNAL(clicked(bool)), MainWindow, SLOT(batmanMainWindow()));
+        QObject::connect(play, SIGNAL(clicked(bool)), MainWindow, SLOT(playPauseMainWindow()));
+
 
         tabWidget->setCurrentIndex(1);
 
@@ -1461,10 +1491,10 @@ public:
         shapesDock->setWindowTitle(QCoreApplication::translate("MainWindow", "Shapes/Scene&view", nullptr));
         showSceneviewInstead->setText(QCoreApplication::translate("MainWindow", "Show sceneview instead", nullptr));
         shapeParameters->setTitle(QCoreApplication::translate("MainWindow", "Shape Parameters", nullptr));
-        shapeParameterLabel1->setText(QCoreApplication::translate("MainWindow", "dimension", nullptr));
-        shapeParameterLabel2->setText(QCoreApplication::translate("MainWindow", "speclar", nullptr));
+        shapeParameterLabel1->setText(QCoreApplication::translate("MainWindow", "tessellation", nullptr));
+        shapeParameterLabel2->setText(QCoreApplication::translate("MainWindow", "specularity", nullptr));
         shapeParameterLabel3->setText(QCoreApplication::translate("MainWindow", "wind velocity", nullptr));
-        shapeParameterLabel3->setText(QCoreApplication::translate("MainWindow", "wind angle", nullptr));
+        shapeParameterLabel4->setText(QCoreApplication::translate("MainWindow", "wind angle", nullptr));
 
         useLightingCheckbox->setText(QCoreApplication::translate("MainWindow", "Use lighting", nullptr));
         drawWireframeCheckbox->setText(QCoreApplication::translate("MainWindow", "Draw wireframe", nullptr));
@@ -1528,6 +1558,11 @@ public:
         label->setText(QCoreApplication::translate("MainWindow", "Resize the window to change the aspect ratio.", nullptr));
         menuFile->setTitle(QCoreApplication::translate("MainWindow", "&File", nullptr));
         menuToolbars->setTitle(QCoreApplication::translate("MainWindow", "&Toolbars", nullptr));
+
+        superman->setText(QCoreApplication::translate("MainWindow", "Superman", nullptr));
+        batman->setText(QCoreApplication::translate("MainWindow", "Batman", nullptr));
+        play->setText(QCoreApplication::translate("MainWindow", "Play/Pause", nullptr));
+
     } // retranslateUi
 
 };
