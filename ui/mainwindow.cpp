@@ -186,17 +186,17 @@ void MainWindow::dataBind() {
 
     // Shapes dock
     BIND(BoolBinding::bindCheckbox(ui->showSceneviewInstead, settings.useSceneviewScene))
-    BIND(ChoiceBinding::bindRadioButtons(
-            shapesButtonGroup,
-            NUM_SHAPE_TYPES,
-            settings.shapeType,
-            ui->shapeTypeCube,
-            ui->shapeTypeCone,
-            ui->shapeTypeSphere,
-            ui->shapeTypeCylinder,
-            ui->shapeTypeTorus,
-            ui->shapeTypeSpecial1,
-            ui->shapeTypeSpecial2))
+//    BIND(ChoiceBinding::bindRadioButtons(
+//            shapesButtonGroup,
+//            NUM_SHAPE_TYPES,
+//            settings.shapeType,
+//            ui->shapeTypeCube,
+//            ui->shapeTypeCone,
+//            ui->shapeTypeSphere,
+//            ui->shapeTypeCylinder,
+//            ui->shapeTypeTorus,
+//            ui->shapeTypeSpecial1,
+//            ui->shapeTypeSpecial2))
     BIND(IntBinding::bindSliderAndTextbox(
         ui->shapeParameterSlider1, ui->shapeParameterTextbox1, settings.shapeParameter1, 1.f, 60.f))
     BIND(FloatBinding::bindSliderAndTextbox(
